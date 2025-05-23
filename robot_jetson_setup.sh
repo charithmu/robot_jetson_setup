@@ -170,18 +170,7 @@ execute_step 3 \
 # Step 4: Install system management and network tools
 execute_step 4 \
 "Installing system utilities" \
-"sudo apt install -y \\
-    terminator \\
-    net-tools \\
-    nmap \\
-    htop \\
-    iotop \\
-    iftop \\
-    ncdu \\
-    tmux \\
-    tree \\
-    mlocate \\
-    nano"
+"sudo apt install -y terminator net-tools nmap htop iotop iftop ncdu tmux tree mlocate nano"
 
 # Step 5: Install jetson-stats for system monitoring
 execute_step 5 \
@@ -261,19 +250,18 @@ echo 'Bash environment configured.'"
 #=============================================================================
 
 echo -e "\n\033[1;32m✓ All steps completed successfully!\033[0m"
-echo ""
-echo "Setup includes:"
-echo "  • Updated system packages and removed unnecessary software"
-echo "  • Development tools (build-essential, cmake, git, python3)"
-echo "  • System utilities (terminator, htop, tmux, nano, etc.)"
-echo "  • Configured Git with modern defaults and aliases"
-echo "  • Created ~/dev development workspace"
-echo "  • Configured bash environment with CUDA paths and aliases"
-echo "  • Installed jetson-stats for system monitoring"
-echo "  • Installed NVIDIA JetPack for GPU development"
-echo "  • Configured Docker with NVIDIA runtime as default"
-echo ""
 echo -e "\033[1;36mYour Jetson device is now configured for robotics development.\033[0m"
 echo ""
 echo -e "\033[1;34mScript by: Charith Munasinghe (munge@zhaw.ch)\033[0m"
 echo ""
+echo -e "\033[1;32mSystem Information:\033[0m"
+jetson_release
+
+#=============================================================================
+# END OF SCRIPT
+#=============================================================================
+# Note: This script is designed for NVIDIA Jetson devices and may not work
+#       correctly on other systems. Always review and test scripts before
+#       executing them, especially with sudo privileges.
+#       Use at your own risk!!
+#=============================================================================
