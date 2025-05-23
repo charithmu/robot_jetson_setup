@@ -193,8 +193,7 @@ echo '{
     },
     \"default-runtime\": \"nvidia\"
 }' | sudo tee /etc/docker/daemon.json > /dev/null && \
-sudo systemctl restart docker && \
-newgrp docker"
+sudo systemctl restart docker"
 
 # Step 7: Configure Git with helpful defaults and user credentials
 execute_step 7 \
@@ -251,6 +250,8 @@ echo 'Bash environment configured.'"
 
 echo -e "\n\033[1;32m✓ All steps completed successfully!\033[0m"
 echo -e "\033[1;36mYour Jetson device is now configured for robotics development.\033[0m"
+echo ""
+echo -e "Note: Log out or restart before continue to apply configurations. (Docker group changes, etc.)"
 echo ""
 echo -e "\033[1;34mScript by: Charith Munasinghe (munge@zhaw.ch)\033[0m"
 echo ""
