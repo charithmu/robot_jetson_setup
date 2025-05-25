@@ -51,15 +51,12 @@ for arg in "$@"; do
     case $arg in
         --dry-run)
             DRY_RUN=true
-            shift # Remove --dry-run from processing
             ;;
         --skip:*)
             SKIP_UNTIL="${arg#*:}"
-            shift # Remove --skip:N from processing
             ;;
         --steps)
             SHOW_STEPS=true
-            shift # Remove --steps from processing
             ;;
         *)
             # Unknown option - silently ignore for now
@@ -100,6 +97,13 @@ if [ "$DRY_RUN" = false ] && [ "$(id -u)" -ne 0 ]; then
     exit $?
 fi
 
+# Validate that SUDO_USER is set when running as root (except in dry run)
+if [ "$DRY_RUN" = false ] && [ "$(id -u)" -eq 0 ] && [ -z "$SUDO_USER" ]; then
+    echo -e "\033[1;31mError: This script must be run with sudo, not as root directly.\033[0m"
+    echo "Please run: sudo $0 $*"
+    exit 1
+fi
+
 #=============================================================================
 # STEP TRACKING SYSTEM
 #=============================================================================
@@ -116,7 +120,19 @@ fi
 CURRENT_STEP=$(cat "$STEP_FILE")
 
 # Handle skip functionality
-if [ "$SKIP_UNTIL" -gt 0 ]; then
+if [ "$SKIP_UNTIL" != "0" ]; then
+    # Check if SKIP_UNTIL is a valid number
+    if ! [[ "$SKIP_UNTIL" =~ ^[0-9]+$ ]]; then
+        echo -e "\033[1;31mError: --skip parameter must be a number\033[0m"
+        exit 1
+    fi
+    
+    # Validate skip parameter is a valid step number (1-10)
+    if [ "$SKIP_UNTIL" -lt 1 ] || [ "$SKIP_UNTIL" -gt 10 ]; then
+        echo -e "\033[1;31mError: --skip parameter must be between 1 and 10\033[0m"
+        exit 1
+    fi
+    
     if [ "$SKIP_UNTIL" -gt "$CURRENT_STEP" ]; then
         echo -e "\033[1;33mSkipping steps up to and including step $SKIP_UNTIL\033[0m"
         echo "$SKIP_UNTIL" > "$STEP_FILE"
@@ -155,7 +171,7 @@ execute_step() {
         else
             # Execute command and capture result
             set +e  # Temporarily disable exit on error to handle it gracefully
-            eval $cmd
+            eval "$cmd"
             local result=$?
             set -e  # Re-enable exit on error
         fi
@@ -229,7 +245,7 @@ execute_step 6 \
 "Setting up Docker and Docker Compose with NVIDIA runtime" \
 "sudo apt install -y docker.io docker-compose-v2 && \
 sudo groupadd -f docker && \
-sudo usermod -aG docker \$USER && \
+sudo usermod -aG docker \$SUDO_USER && \
 sudo mkdir -p /etc/docker && \
 echo '{
     \"runtimes\": {
@@ -240,22 +256,24 @@ echo '{
     },
     \"default-runtime\": \"nvidia\"
 }' | sudo tee /etc/docker/daemon.json > /dev/null && \
-sudo systemctl restart docker"
+sudo systemctl enable docker && \
+sudo systemctl restart docker && \
+sudo systemctl --no-pager status docker"
 
 # Step 7: Configure Git with helpful defaults and user credentials
 execute_step 7 \
 "Configuring Git" \
 "read -p 'Enter your Git name: ' gitname && \
 read -p 'Enter your Git email: ' gitemail && \
-git config --global user.name \"\$gitname\" && \
-git config --global user.email \"\$gitemail\" && \
-git config --global init.defaultBranch main && \
-git config --global color.ui auto && \
-git config --global pull.rebase true && \
-git config --global push.default simple && \
-git config --global core.editor 'nano' && \
-git config --global alias.lg 'log --oneline --graph --all --decorate' && \
-git config --global credential.helper 'cache --timeout=3600' && \
+sudo -u \$SUDO_USER git config --global user.name \"\$gitname\" && \
+sudo -u \$SUDO_USER git config --global user.email \"\$gitemail\" && \
+sudo -u \$SUDO_USER git config --global init.defaultBranch main && \
+sudo -u \$SUDO_USER git config --global color.ui auto && \
+sudo -u \$SUDO_USER git config --global pull.rebase true && \
+sudo -u \$SUDO_USER git config --global push.default simple && \
+sudo -u \$SUDO_USER git config --global core.editor 'nano' && \
+sudo -u \$SUDO_USER git config --global alias.lg 'log --oneline --graph --all --decorate' && \
+sudo -u \$SUDO_USER git config --global credential.helper 'cache --timeout=3600' && \
 echo 'Git configuration complete.'"
 
 # Step 8: Remove unnecessary packages to free up space
@@ -267,20 +285,33 @@ sudo apt autoremove -y"
 # Step 9: Create development workspace directory
 execute_step 9 \
 "Creating development workspace" \
-"mkdir -p ~/dev && echo 'Created development workspace at ~/dev' && ls -la ~/dev"
+"mkdir -p /home/\$SUDO_USER/dev && chown \$SUDO_USER:\$SUDO_USER /home/\$SUDO_USER/dev && echo 'Created development workspace at /home/\$SUDO_USER/dev' && ls -la /home/\$SUDO_USER/dev"
 
 # Step 10: Configure bash environment with CUDA paths and useful aliases
 execute_step 10 \
 "Configuring bash environment" \
-"cat >> ~/.bashrc << 'EOF'
+"cat >> /home/\$SUDO_USER/.bashrc << 'EOL'
 
-# Added by robot_jetson_setup.sh
-export PATH=/usr/local/cuda/bin:\$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64:\$LD_LIBRARY_PATH
-alias cc=\"clear\"
-alias lx=\"ls -aX1C\"
-cd ~/dev
-EOF
+#=============================================================================
+# Robot Jetson Setup - Environment Configuration
+#=============================================================================
+# Added by robot_jetson_setup.sh on \$(date)
+# 
+# CUDA Environment Setup
+export PATH=\"/usr/local/cuda/bin:\$PATH\"
+export LD_LIBRARY_PATH=\"/usr/local/cuda/lib64:\$LD_LIBRARY_PATH\"
+
+# Useful Aliases for Development
+alias cc=\"clear\"                    # Quick clear command
+alias lx=\"ls -aX1C\"                 # List files in columns, sorted by extension
+
+# Auto-navigate to development workspace
+if [ -d \"\$HOME/dev\" ]; then
+    cd \"\$HOME/dev\" 2>/dev/null || true
+fi
+
+#=============================================================================
+EOL
 echo 'Bash environment configured. Added CUDA paths and aliases to ~/.bashrc'"
 
 #=============================================================================
@@ -295,7 +326,11 @@ echo ""
 echo -e "\033[1;34mScript by: Charith Munasinghe (munge@zhaw.ch)\033[0m"
 echo ""
 echo -e "\033[1;32mSystem Information:\033[0m"
-jetson_release
+if command -v jetson_release >/dev/null 2>&1; then
+    jetson_release
+else
+    echo "jetson_release command not available (install jetson-stats to see system info)"
+fi
 
 #=============================================================================
 # END OF SCRIPT
