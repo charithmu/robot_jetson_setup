@@ -312,7 +312,7 @@ fi
 #=============================================================================
 EOL
 echo 'Bash environment configured. Added CUDA paths and aliases to ~/.bashrc' && \
-sudo -u \$SUDO_USER bash -c 'source /home/\$SUDO_USER/.bashrc' && \
+sudo -u \$SUDO_USER bash -c 'source \"/home/\$SUDO_USER/.bashrc\"' && \
 echo 'Bash environment sourced and applied immediately.'"
 
 #=============================================================================
