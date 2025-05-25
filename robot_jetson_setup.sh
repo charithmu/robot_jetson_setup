@@ -318,7 +318,7 @@ echo 'Bash environment configured.'"
 # Step 11: Source the updated bashrc file to apply changes immediately
 execute_step 11 \
 "Applying bash environment changes" \
-"sudo -u \$SUDO_USER bash -c '. /home/\$SUDO_USER/.bashrc' && echo 'Environment changes applied successfully.'"
+"sudo -u $SUDO_USER HOME=/home/$SUDO_USER bash -c 'source \"$HOME/.bashrc\" && echo "Environment changes applied successfully."'"
 
 #=============================================================================
 # COMPLETION MESSAGE
