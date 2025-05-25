@@ -8,12 +8,16 @@
 #              development on NVIDIA Jetson devices.
 # 
 # Usage:
-#   ./robot_jetson_setup.sh          # Normal execution
-#   ./robot_jetson_setup.sh --dry-run # Preview what would be executed
+#   ./robot_jetson_setup.sh               # Normal execution
+#   ./robot_jetson_setup.sh --dry-run     # Preview what would be executed
+#   ./robot_jetson_setup.sh --skip:N      # Skip steps up to and including step N
+#   ./robot_jetson_setup.sh --steps       # Show all steps and exit
 #
 # Features:
 #   - Dry-run functionality for testing
 #   - Step-by-step execution with progress tracking
+#   - Skip functionality to start from specific steps
+#   - Show steps functionality to list all steps
 #   - Automatic reboot handling for system updates
 #   - Comprehensive error management and logging
 #   - Optimized step ordering for efficient setup
@@ -27,8 +31,8 @@
 #   5. Install jetson-stats for system monitoring
 #   6. Setup Docker with NVIDIA runtime as default
 #   7. Configure Git with modern defaults and user credentials
-#   8. Create development workspace directory
-#   9. Remove unnecessary packages (games, LibreOffice, Thunderbird)
+#   8. Remove unnecessary packages (games, LibreOffice, Thunderbird)
+#   9. Create development workspace directory
 #   10. Configure bash environment with CUDA paths and aliases
 #=============================================================================
 
@@ -40,17 +44,49 @@ set -e  # Exit immediately if a command exits with a non-zero status
 
 # Parse command line arguments
 DRY_RUN=false
+SKIP_UNTIL=0
+SHOW_STEPS=false
+
 for arg in "$@"; do
     case $arg in
         --dry-run)
             DRY_RUN=true
             shift # Remove --dry-run from processing
             ;;
+        --skip:*)
+            SKIP_UNTIL="${arg#*:}"
+            shift # Remove --skip:N from processing
+            ;;
+        --steps)
+            SHOW_STEPS=true
+            shift # Remove --steps from processing
+            ;;
         *)
             # Unknown option - silently ignore for now
             ;;
     esac
 done
+
+# Function to show all steps and exit
+show_steps() {
+    echo "Robot Jetson Setup Script - Steps:"
+    echo "1. Update system packages"
+    echo "2. Install NVIDIA JetPack (requires reboot)"
+    echo "3. Install development tools (build-essential, cmake, git, python3)"
+    echo "4. Install system utilities (terminator, htop, tmux, nano, etc.)"
+    echo "5. Install jetson-stats for system monitoring"
+    echo "6. Setup Docker with NVIDIA runtime as default"
+    echo "7. Configure Git with modern defaults and user credentials"
+    echo "8. Remove unnecessary packages (games, LibreOffice, Thunderbird)"
+    echo "9. Create development workspace directory"
+    echo "10. Configure bash environment with CUDA paths and aliases"
+    exit 0
+}
+
+# Show steps if requested
+if [ "$SHOW_STEPS" = true ]; then
+    show_steps
+fi
 
 #=============================================================================
 # PRIVILEGE AND SETUP VALIDATION
@@ -78,6 +114,17 @@ if [ ! -f "$STEP_FILE" ]; then
     chmod 666 "$STEP_FILE"  # Ensure the file is writable for future runs
 fi
 CURRENT_STEP=$(cat "$STEP_FILE")
+
+# Handle skip functionality
+if [ "$SKIP_UNTIL" -gt 0 ]; then
+    if [ "$SKIP_UNTIL" -gt "$CURRENT_STEP" ]; then
+        echo -e "\033[1;33mSkipping steps up to and including step $SKIP_UNTIL\033[0m"
+        echo "$SKIP_UNTIL" > "$STEP_FILE"
+        CURRENT_STEP=$SKIP_UNTIL
+    else
+        echo -e "\033[1;33mStep $SKIP_UNTIL has already been completed or passed. Current step: $CURRENT_STEP\033[0m"
+    fi
+fi
 
 #=============================================================================
 # UTILITY FUNCTIONS
@@ -220,21 +267,21 @@ sudo apt autoremove -y"
 # Step 9: Create development workspace directory
 execute_step 9 \
 "Creating development workspace" \
-"mkdir -p ~/dev && cd ~/dev && echo 'Created development workspace at ~/dev'"
+"mkdir -p ~/dev && echo 'Created development workspace at ~/dev' && ls -la ~/dev"
 
 # Step 10: Configure bash environment with CUDA paths and useful aliases
 execute_step 10 \
 "Configuring bash environment" \
-"echo '# Added by robot_jetson_setup.sh
-# CUDA environment paths
+"cat >> ~/.bashrc << 'EOF'
+
+# Added by robot_jetson_setup.sh
 export PATH=/usr/local/cuda/bin:\$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:\$LD_LIBRARY_PATH
-# Useful aliases for robotics development
 alias cc=\"clear\"
 alias lx=\"ls -aX1C\"
-# Start in development workspace
 cd ~/dev
-' >> ~/.bashrc && echo 'Bash environment configured.'"
+EOF
+echo 'Bash environment configured. Added CUDA paths and aliases to ~/.bashrc'"
 
 #=============================================================================
 # COMPLETION MESSAGE
