@@ -306,6 +306,7 @@ export LD_LIBRARY_PATH=\"/usr/local/cuda/lib64:\$LD_LIBRARY_PATH\"
 # Useful Aliases for Development
 alias cc=\"clear\"                    # Quick clear command
 alias lx=\"ls -aX1C\"                 # List files in columns, sorted by extension
+alias src=\"source ~/.bashrc\"                   # Source ~/.bashrc
 
 # Auto-navigate to development workspace
 if [ -d \"\$HOME/dev\" ]; then
@@ -313,12 +314,7 @@ if [ -d \"\$HOME/dev\" ]; then
 fi
 #=============================================================================
 EOL
-echo 'Bash environment configured.'"
-
-# Step 11: Source the updated bashrc file to apply changes immediately
-execute_step 11 \
-"Applying bash environment changes" \
-"sudo -u $SUDO_USER HOME=/home/$SUDO_USER bash -c 'source \"$HOME/.bashrc\" && echo "Environment changes applied successfully."'"
+echo 'Bash environment configured. Please run "source ~/.bashrc or src" to apply changes immediately.'"
 
 #=============================================================================
 # COMPLETION MESSAGE
