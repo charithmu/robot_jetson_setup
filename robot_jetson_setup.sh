@@ -314,7 +314,7 @@ if [ -d \"\$HOME/dev\" ]; then
 fi
 #=============================================================================
 EOL
-echo 'Bash environment configured. Please run "source ~/.bashrc or src" to apply changes immediately.'"
+echo 'Bash environment configured. Please run "source ~/.bashrc or src" to apply changes.'"
 
 #=============================================================================
 # COMPLETION MESSAGE
@@ -323,16 +323,12 @@ echo 'Bash environment configured. Please run "source ~/.bashrc or src" to apply
 echo -e "\n\033[1;32m✓ All steps completed successfully!\033[0m"
 echo -e "\033[1;36mYour Jetson device is now configured for robotics development.\033[0m"
 echo ""
-echo -e "Note: Log out or restart before continue to apply configurations. (Docker group changes, etc.)"
+echo -e "Log out or restart before continue to apply configurations. (Docker group changes, etc.)"
+echo -e "Run 'source ~/.bashrc or src' to apply the bash environment changes."
+echo -e "Run jetson_release to check system information."
 echo ""
 echo -e "\033[1;34mScript by: Charith Munasinghe (munge@zhaw.ch)\033[0m"
 echo ""
-echo -e "\033[1;32mSystem Information:\033[0m"
-if command -v jetson_release >/dev/null 2>&1; then
-    jetson_release
-else
-    echo "jetson_release command not available (install jetson-stats to see system info)"
-fi
 
 #=============================================================================
 # END OF SCRIPT
