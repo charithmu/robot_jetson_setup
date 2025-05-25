@@ -314,7 +314,7 @@ if [ -d \"\$HOME/dev\" ]; then
 fi
 #=============================================================================
 EOL
-echo 'Bash environment configured. Please run "source ~/.bashrc or src" to apply changes.'"
+echo 'Bash environment configured. Please run \"source ~/.bashrc or src\" to apply changes.'"
 
 #=============================================================================
 # COMPLETION MESSAGE
