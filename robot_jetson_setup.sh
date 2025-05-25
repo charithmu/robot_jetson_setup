@@ -220,29 +220,21 @@ sudo apt autoremove -y"
 # Step 9: Create development workspace directory
 execute_step 9 \
 "Creating development workspace" \
-"mkdir -p ~/dev && \
-cd ~/dev && \
-echo 'Created development workspace at ~/dev'"
+"mkdir -p ~/dev && cd ~/dev && echo 'Created development workspace at ~/dev'"
 
 # Step 10: Configure bash environment with CUDA paths and useful aliases
 execute_step 10 \
 "Configuring bash environment" \
 "echo '# Added by robot_jetson_setup.sh
-
 # CUDA environment paths
 export PATH=/usr/local/cuda/bin:\$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:\$LD_LIBRARY_PATH
-
 # Useful aliases for robotics development
 alias cc=\"clear\"
 alias lx=\"ls -aX1C\"
-
 # Start in development workspace
 cd ~/dev
-
-' >> ~/.bashrc && \
-source ~/.bashrc && \
-echo 'Bash environment configured.'"
+' >> ~/.bashrc && echo 'Bash environment configured.'"
 
 #=============================================================================
 # COMPLETION MESSAGE
