@@ -290,13 +290,13 @@ execute_step 9 \
 # Step 10: Configure bash environment with CUDA paths and useful aliases
 execute_step 10 \
 "Configuring bash environment" \
-"cat >> /home/\$SUDO_USER/.bashrc << 'EOL'
+"cat >> /home/\$SUDO_USER/.bashrc << \"EOL\"
 
 #=============================================================================
 # Robot Jetson Setup - Environment Configuration
 #=============================================================================
-# Added by robot_jetson_setup.sh on \$(date)
-# 
+# Added by robot_jetson_setup.sh on $(date)
+ 
 # CUDA Environment Setup
 export PATH=\"/usr/local/cuda/bin:\$PATH\"
 export LD_LIBRARY_PATH=\"/usr/local/cuda/lib64:\$LD_LIBRARY_PATH\"
@@ -309,10 +309,11 @@ alias lx=\"ls -aX1C\"                 # List files in columns, sorted by extensi
 if [ -d \"\$HOME/dev\" ]; then
     cd \"\$HOME/dev\" 2>/dev/null || true
 fi
-
 #=============================================================================
 EOL
-echo 'Bash environment configured. Added CUDA paths and aliases to ~/.bashrc'"
+echo 'Bash environment configured. Added CUDA paths and aliases to ~/.bashrc' && \
+sudo -u \$SUDO_USER bash -c 'source /home/\$SUDO_USER/.bashrc' && \
+echo 'Bash environment sourced and applied immediately.'"
 
 #=============================================================================
 # COMPLETION MESSAGE
