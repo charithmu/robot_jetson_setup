@@ -34,6 +34,7 @@
 #   8. Remove unnecessary packages (games, LibreOffice, Thunderbird)
 #   9. Create development workspace directory
 #   10. Configure bash environment with CUDA paths and aliases
+#   11. Apply bash environment changes immediately
 #=============================================================================
 
 set -e  # Exit immediately if a command exits with a non-zero status
@@ -77,6 +78,7 @@ show_steps() {
     echo "8. Remove unnecessary packages (games, LibreOffice, Thunderbird)"
     echo "9. Create development workspace directory"
     echo "10. Configure bash environment with CUDA paths and aliases"
+    echo "11. Apply bash environment changes immediately"
     exit 0
 }
 
@@ -127,9 +129,9 @@ if [ "$SKIP_UNTIL" != "0" ]; then
         exit 1
     fi
     
-    # Validate skip parameter is a valid step number (1-10)
-    if [ "$SKIP_UNTIL" -lt 1 ] || [ "$SKIP_UNTIL" -gt 10 ]; then
-        echo -e "\033[1;31mError: --skip parameter must be between 1 and 10\033[0m"
+    # Validate skip parameter is a valid step number (1-11)
+    if [ "$SKIP_UNTIL" -lt 1 ] || [ "$SKIP_UNTIL" -gt 11 ]; then
+        echo -e "\033[1;31mError: --skip parameter must be between 1 and 11\033[0m"
         exit 1
     fi
     
@@ -311,9 +313,12 @@ if [ -d \"\$HOME/dev\" ]; then
 fi
 #=============================================================================
 EOL
-echo 'Bash environment configured. Added CUDA paths and aliases to ~/.bashrc' && \
-sudo -u \$SUDO_USER bash -c 'source \"/home/\$SUDO_USER/.bashrc\"' && \
-echo 'Bash environment sourced and applied immediately.'"
+echo 'Bash environment configured.'"
+
+# Step 11: Source the updated bashrc file to apply changes immediately
+execute_step 11 \
+"Applying bash environment changes" \
+"sudo -u \$SUDO_USER bash -c '. /home/\$SUDO_USER/.bashrc' && echo 'Environment changes applied successfully.'"
 
 #=============================================================================
 # COMPLETION MESSAGE
