@@ -112,7 +112,7 @@ fi
 
 # Get the script's directory for storing progress marker file
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STEP_FILE="${SCRIPT_DIR}/.robot_setup_progress"
+STEP_FILE="${SCRIPT_DIR}/.setup_progress"
 
 # Create and check step tracking file
 if [ ! -f "$STEP_FILE" ]; then
@@ -123,18 +123,6 @@ CURRENT_STEP=$(cat "$STEP_FILE")
 
 # Handle skip functionality
 if [ "$SKIP_UNTIL" != "0" ]; then
-    # Check if SKIP_UNTIL is a valid number
-    if ! [[ "$SKIP_UNTIL" =~ ^[0-9]+$ ]]; then
-        echo -e "\033[1;31mError: --skip parameter must be a number\033[0m"
-        exit 1
-    fi
-    
-    # Validate skip parameter is a valid step number (1-11)
-    if [ "$SKIP_UNTIL" -lt 1 ] || [ "$SKIP_UNTIL" -gt 11 ]; then
-        echo -e "\033[1;31mError: --skip parameter must be between 1 and 11\033[0m"
-        exit 1
-    fi
-    
     if [ "$SKIP_UNTIL" -gt "$CURRENT_STEP" ]; then
         echo -e "\033[1;33mSkipping steps up to and including step $SKIP_UNTIL\033[0m"
         echo "$SKIP_UNTIL" > "$STEP_FILE"
